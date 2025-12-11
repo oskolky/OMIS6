@@ -1,0 +1,146 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Knowledge Extraction System API",
+    "version": "1.1.0",
+    "description": "Полный API для системы извлечения знаний (ЛР-5 совместимо)"
+  },
+  "paths": {
+    "/extract": {
+      "post": {
+        "summary": "Загрузить документ и выполнить обработку",
+        "description": "Получает файл, сохраняет, выполняет OCR/NLP и кладёт результат в БД",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Обработка завершена" }
+        }
+      }
+    },
+
+    "/documents": {
+      "get": {
+        "summary": "Список всех документов",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/documents/{id}": {
+      "get": {
+        "summary": "Получить информацию о документе",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "summary": "Удалить документ",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Удалено" } }
+      }
+    },
+
+    "/documents/{id}/text": {
+      "get": {
+        "summary": "Получить полный текст документа",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer"} }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/documents/{id}/sentences": {
+      "get": {
+        "summary": "Получить все предложения документа",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer"} }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/entities": {
+      "get": {
+        "summary": "Получить сущности по документу",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "required": true
+          }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/relations": {
+      "get": {
+        "summary": "Получить связи по документу",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "required": true
+          }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/graph": {
+      "get": {
+        "summary": "Получить граф знаний",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "required": true
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["graphml", "jsonld"] },
+            "required": true
+          }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/reprocess/{id}": {
+      "post": {
+        "summary": "Повторная обработка документа",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer"} }
+        ],
+        "responses": { "200": { "description": "Документ переобработан" } }
+      }
+    },
+
+    "/stats": {
+      "get": {
+        "summary": "Статистика по базе знаний",
+        "description": "Количество документов, сущностей, связей, предложений",
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  }
+}
+

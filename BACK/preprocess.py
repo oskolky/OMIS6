@@ -1,7 +1,5 @@
 # preprocess.py
 import re
-from langdetect import detect
-from utils import log
 
 SENT_BOUNDARY_REGEX = re.compile(r'(?<=[\.\?\!…])\s+')
 

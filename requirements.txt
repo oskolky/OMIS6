@@ -8,3 +8,5 @@ sqlalchemy>=1.4
 tqdm>=4.0
 regex
 langdetect
+fastapi
+uvicorn
