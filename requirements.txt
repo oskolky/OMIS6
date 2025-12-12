@@ -10,3 +10,4 @@ regex
 langdetect
 fastapi
 uvicorn
+python-multipart

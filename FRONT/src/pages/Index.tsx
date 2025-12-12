@@ -12,7 +12,7 @@ import {
   deleteDocument,
   reprocessDocument,
   fetchStats,
-} from "../api/client";
+} from "@/api/client";
 
 const Index = () => {
   const [documents, setDocuments] = useState([]);
@@ -25,72 +25,48 @@ const Index = () => {
 
   const { toast } = useToast();
 
-  // -------- Загрузить статистику -------- //
-  async function loadStats() {
-    try {
-      const data = await fetchStats();
-      setStats(data);
-    } catch (e) {
-      console.error("Ошибка загрузки статистики", e);
-    }
-  }
-
-  // -------- Загрузить список документов -------- //
-  async function loadDocuments() {
-    try {
-      const docs = await fetchDocuments();
-      setDocuments(docs);
-    } catch (e) {
-      console.error("Ошибка загрузки документов", e);
-    }
-  }
-
+  // Load all data at start
   useEffect(() => {
-    loadStats();
     loadDocuments();
+    loadStats();
   }, []);
 
-  // -------- Загрузка файла -------- //
+  async function loadDocuments() {
+    const docs = await fetchDocuments();
+    setDocuments(docs);
+  }
+
+  async function loadStats() {
+    const s = await fetchStats();
+    setStats(s);
+  }
+
   async function handleUpload(file: File) {
     await uploadDocument(file);
-    toast({
-      title: "Документ загружен",
-      description: `${file.name} отправлен в систему`,
-    });
+    toast({ title: "Документ загружен", description: `${file.name}` });
 
     await loadDocuments();
     await loadStats();
   }
 
-  // -------- Удаление документа -------- //
   async function handleDelete(id: number) {
     await deleteDocument(id);
-    toast({
-      title: "Документ удалён",
-      description: `Документ #${id} удалён`,
-    });
+    toast({ title: "Удалено", description: `Документ #${id} удалён` });
 
     await loadDocuments();
     await loadStats();
   }
 
-  // -------- Переобработка -------- //
   async function handleReprocess(id: number) {
     await reprocessDocument(id);
-    toast({
-      title: "Переобработка",
-      description: `Документ #${id} отправлен на повторную обработку`,
-    });
+    toast({ title: "Переобработка", description: `Документ #${id}` });
 
+    // статус скоро обновится после обработки
     await loadDocuments();
   }
 
-  // -------- Просмотр -------- //
   function handleView(id: number) {
-    toast({
-      title: "Открытие документа",
-      description: `Документ #${id}`,
-    });
+    toast({ title: "Просмотр", description: `Документ #${id}` });
   }
 
   return (
@@ -99,9 +75,9 @@ const Index = () => {
 
       <main className="container mx-auto px-6 py-8">
 
-        {/* -------- Статистика -------- */}
+        {/* STATS */}
         <section className="mb-12">
-          <h2 className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
+          <h2 className="font-mono text-xs uppercase mb-4 text-muted-foreground">
             Статистика базы знаний
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -112,19 +88,18 @@ const Index = () => {
           </div>
         </section>
 
-        {/* -------- Загрузка документа -------- */}
+        {/* UPLOAD */}
         <section className="mb-12">
-          <h2 className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
+          <h2 className="font-mono text-xs uppercase mb-4 text-muted-foreground">
             Загрузка документа
           </h2>
-
           <DocumentUpload onUpload={handleUpload} />
         </section>
 
-        {/* -------- Список документов -------- */}
+        {/* DOCUMENTS */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <h2 className="font-mono text-xs uppercase text-muted-foreground">
               Последние документы
             </h2>
             <span className="font-mono text-xs text-muted-foreground">
@@ -134,25 +109,12 @@ const Index = () => {
 
           <DocumentList
             documents={documents}
+            onView={handleView}
             onDelete={handleDelete}
             onReprocess={handleReprocess}
-            onView={handleView}
           />
         </section>
-
       </main>
-
-      {/* -------- Footer -------- */}
-      <footer className="border-t border-border mt-16">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <p className="font-mono text-xs text-muted-foreground">
-              Knowledge Extraction API v1.1.0
-            </p>
-            <p className="font-mono text-xs text-muted-foreground">ЛР-5 совместимо</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
