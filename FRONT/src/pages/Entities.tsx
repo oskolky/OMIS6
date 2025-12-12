@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Header from "@/components/layout/Header";
 import EntityBadge from "@/components/entities/EntityBadge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Entity {
   id: number;
@@ -17,17 +16,12 @@ const EntitiesPage = () => {
   const [loading, setLoading] = useState(true);
 
   const [query, setQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [documentFilter, setDocumentFilter] = useState("all");
 
   const loadEntities = () => {
     setLoading(true);
 
     const params = new URLSearchParams();
-
     if (query.trim()) params.append("q", query.trim());
-    if (typeFilter !== "all") params.append("type", typeFilter);
-    if (documentFilter !== "all") params.append("document_id", documentFilter);
 
     fetch(`/entities?${params.toString()}`)
       .then((res) => res.json())
@@ -38,8 +32,9 @@ const EntitiesPage = () => {
   };
 
   useEffect(() => {
-    loadEntities();
-  }, [query, typeFilter, documentFilter]);
+    const delay = setTimeout(loadEntities, 300);
+    return () => clearTimeout(delay);
+  }, [query]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,40 +46,16 @@ const EntitiesPage = () => {
           Сущности
         </h1>
 
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-
+        {/* Only search */}
+        <div className="mb-8">
           <Input
-            placeholder="Поиск по тексту..."
+            placeholder="Поиск сущности..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="font-mono"
           />
-
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-48 font-mono">
-              <SelectValue placeholder="Тип сущности" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все типы</SelectItem>
-              <SelectItem value="person">Персона</SelectItem>
-              <SelectItem value="organization">Организация</SelectItem>
-              <SelectItem value="location">Локация</SelectItem>
-              <SelectItem value="date">Дата</SelectItem>
-              <SelectItem value="other">Другое</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Input
-            placeholder="ID документа (или all)"
-            value={documentFilter}
-            onChange={(e) => setDocumentFilter(e.target.value)}
-            className="font-mono w-40"
-          />
-
         </div>
 
-        {/* List */}
         {loading && (
           <p className="font-mono text-sm text-muted-foreground">Загрузка...</p>
         )}
@@ -107,7 +78,7 @@ const EntitiesPage = () => {
                 </EntityBadge>
 
                 <span className="font-mono text-xs text-muted-foreground">
-                  Документ #{e.documentId} | Предложение #{e.sentenceId}
+                  Документ #{e.documentId} • Предложение #{e.sentenceId}
                 </span>
               </div>
 

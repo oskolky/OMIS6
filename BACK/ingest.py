@@ -6,7 +6,7 @@ from PIL import Image
 import pytesseract
 from utils import log
 
-SUPPORTED = ('.pdf', '.docx', '.png', '.jpg', '.jpeg', '.tiff')
+SUPPORTED = ('.pdf', '.docx')
 
 class DocumentIngestor:
     def __init__(self, ocr_lang='rus+eng'):
@@ -32,8 +32,6 @@ class DocumentIngestor:
             return self._read_pdf(path)
         elif ext == '.docx':
             return self._read_docx(path)
-        elif ext in ('.png', '.jpg', '.jpeg', '.tiff'):
-            return self._read_image(path)
         else:
             raise ValueError("Unsupported format")
 

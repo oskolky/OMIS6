@@ -3,7 +3,8 @@ import sqlite3
 import os
 from datetime import datetime
 from utils import log
-import networkx
+import networkx as nx
+import json
 
 
 class Storage:
@@ -159,10 +160,6 @@ class Storage:
     # -----------------------------
     # EXPORT GRAPHML
     # -----------------------------
-    import networkx as nx
-    import json
-
-    # Внутри класса Storage:
 
     def export_graphml(self, out_path="graph.out.graphml", document_id=None):
         """

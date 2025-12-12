@@ -40,14 +40,6 @@ const Header = () => {
                 <Share2 className="inline-block w-4 h-4 mr-2" />
                 Граф
               </NavLink>
-              <NavLink 
-                to="/stats" 
-                className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                activeClassName="text-foreground bg-secondary"
-              >
-                <BarChart3 className="inline-block w-4 h-4 mr-2" />
-                Статистика
-              </NavLink>
             </nav>
           </div>
 

@@ -79,7 +79,7 @@ const DocumentUpload = ({ onUpload }: DocumentUploadProps) => {
           type="file"
           onChange={handleFileSelect}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+          accept=".pdf,.doc,.docx"
         />
         
         <div className="p-8 text-center">
@@ -109,7 +109,7 @@ const DocumentUpload = ({ onUpload }: DocumentUploadProps) => {
                 Перетащите файл или нажмите для выбора
               </p>
               <p className="font-mono text-xs text-muted-foreground mt-2">
-                PDF, DOC, DOCX, TXT, PNG, JPG
+                PDF, DOC, DOCX
               </p>
             </>
           )}
