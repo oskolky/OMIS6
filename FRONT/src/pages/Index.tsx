@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, Database, Link2, MessageSquare } from "lucide-react";
 import Header from "@/components/layout/Header";
 import DocumentUpload from "@/components/documents/DocumentUpload";
@@ -6,127 +6,122 @@ import DocumentList from "@/components/documents/DocumentList";
 import StatsCard from "@/components/stats/StatsCard";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock data for demonstration
-const mockDocuments = [
-  {
-    id: 1,
-    name: "Отчёт_Q4_2024.pdf",
-    uploadedAt: "2024-12-10 14:32",
-    status: "completed" as const,
-    entities: 47,
-    sentences: 234,
-  },
-  {
-    id: 2,
-    name: "Договор_поставки.docx",
-    uploadedAt: "2024-12-10 12:15",
-    status: "completed" as const,
-    entities: 23,
-    sentences: 89,
-  },
-  {
-    id: 3,
-    name: "scan_document.png",
-    uploadedAt: "2024-12-10 10:45",
-    status: "processing" as const,
-    entities: undefined,
-    sentences: undefined,
-  },
-];
-
-const mockStats = {
-  documents: 156,
-  entities: 3847,
-  relations: 1293,
-  sentences: 12456,
-};
+import {
+  uploadDocument,
+  fetchDocuments,
+  deleteDocument,
+  reprocessDocument,
+  fetchStats,
+} from "../api/client";
 
 const Index = () => {
-  const [documents, setDocuments] = useState(mockDocuments);
+  const [documents, setDocuments] = useState([]);
+  const [stats, setStats] = useState({
+    documents: 0,
+    entities: 0,
+    relations: 0,
+    sentences: 0,
+  });
+
   const { toast } = useToast();
 
-  const handleUpload = (file: File) => {
-    const newDoc = {
-      id: Date.now(),
-      name: file.name,
-      uploadedAt: new Date().toLocaleString("ru-RU"),
-      status: "processing" as const,
-      entities: undefined,
-      sentences: undefined,
-    };
-    setDocuments([newDoc, ...documents]);
-  };
+  // -------- Загрузить статистику -------- //
+  async function loadStats() {
+    try {
+      const data = await fetchStats();
+      setStats(data);
+    } catch (e) {
+      console.error("Ошибка загрузки статистики", e);
+    }
+  }
 
-  const handleDelete = (id: number) => {
-    setDocuments(documents.filter((doc) => doc.id !== id));
+  // -------- Загрузить список документов -------- //
+  async function loadDocuments() {
+    try {
+      const docs = await fetchDocuments();
+      setDocuments(docs);
+    } catch (e) {
+      console.error("Ошибка загрузки документов", e);
+    }
+  }
+
+  useEffect(() => {
+    loadStats();
+    loadDocuments();
+  }, []);
+
+  // -------- Загрузка файла -------- //
+  async function handleUpload(file: File) {
+    await uploadDocument(file);
+    toast({
+      title: "Документ загружен",
+      description: `${file.name} отправлен в систему`,
+    });
+
+    await loadDocuments();
+    await loadStats();
+  }
+
+  // -------- Удаление документа -------- //
+  async function handleDelete(id: number) {
+    await deleteDocument(id);
     toast({
       title: "Документ удалён",
-      description: "Документ успешно удалён из системы",
+      description: `Документ #${id} удалён`,
     });
-  };
 
-  const handleReprocess = (id: number) => {
-    setDocuments(
-      documents.map((doc) =>
-        doc.id === id ? { ...doc, status: "processing" as const } : doc
-      )
-    );
-    toast({
-      title: "Переобработка запущена",
-      description: "Документ отправлен на повторную обработку",
-    });
-  };
+    await loadDocuments();
+    await loadStats();
+  }
 
-  const handleView = (id: number) => {
+  // -------- Переобработка -------- //
+  async function handleReprocess(id: number) {
+    await reprocessDocument(id);
     toast({
-      title: "Просмотр документа",
-      description: `Открытие документа #${id}`,
+      title: "Переобработка",
+      description: `Документ #${id} отправлен на повторную обработку`,
     });
-  };
+
+    await loadDocuments();
+  }
+
+  // -------- Просмотр -------- //
+  function handleView(id: number) {
+    toast({
+      title: "Открытие документа",
+      description: `Документ #${id}`,
+    });
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="container mx-auto px-6 py-8">
-        {/* Stats Section */}
+
+        {/* -------- Статистика -------- */}
         <section className="mb-12">
           <h2 className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
             Статистика базы знаний
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatsCard
-              title="Документов"
-              value={mockStats.documents}
-              icon={FileText}
-            />
-            <StatsCard
-              title="Сущностей"
-              value={mockStats.entities}
-              icon={Database}
-            />
-            <StatsCard
-              title="Связей"
-              value={mockStats.relations}
-              icon={Link2}
-            />
-            <StatsCard
-              title="Предложений"
-              value={mockStats.sentences}
-              icon={MessageSquare}
-            />
+            <StatsCard title="Документов" value={stats.documents} icon={FileText} />
+            <StatsCard title="Сущностей" value={stats.entities} icon={Database} />
+            <StatsCard title="Связей" value={stats.relations} icon={Link2} />
+            <StatsCard title="Предложений" value={stats.sentences} icon={MessageSquare} />
           </div>
         </section>
 
-        {/* Upload Section */}
+        {/* -------- Загрузка документа -------- */}
         <section className="mb-12">
           <h2 className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
             Загрузка документа
           </h2>
+
           <DocumentUpload onUpload={handleUpload} />
         </section>
 
-        {/* Documents Section */}
+        {/* -------- Список документов -------- */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -136,25 +131,25 @@ const Index = () => {
               {documents.length} документов
             </span>
           </div>
+
           <DocumentList
             documents={documents}
-            onView={handleView}
             onDelete={handleDelete}
             onReprocess={handleReprocess}
+            onView={handleView}
           />
         </section>
+
       </main>
 
-      {/* Footer */}
+      {/* -------- Footer -------- */}
       <footer className="border-t border-border mt-16">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <p className="font-mono text-xs text-muted-foreground">
-              Knowledge Extraction System API v1.1.0
+              Knowledge Extraction API v1.1.0
             </p>
-            <p className="font-mono text-xs text-muted-foreground">
-              ЛР-5 совместимо
-            </p>
+            <p className="font-mono text-xs text-muted-foreground">ЛР-5 совместимо</p>
           </div>
         </div>
       </footer>
